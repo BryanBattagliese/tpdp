@@ -1,0 +1,133 @@
+precio(asado,5500).
+precio(lomitoDeLaCasa,4500).
+precio(hamburguesa,3500).
+precio(papasFritas,2200).
+precio(ensalada,1900).
+precio(pizzetas, 2500).
+precio(polloALaPlancha, 3200).
+precio(tostadoVeggie, 1500).
+precio(tortilla, 2800).
+
+tieneCarne(asado).
+tieneCarne(hamburguesa).
+tieneCarne(lomitoDeLaCasa).
+tieneCarne(polloALaPlancha).
+
+% -------------------------------------------------------------------------------------
+
+dispuestoAGastar(juan,5000).
+
+dispuestoAGastar(celeste,4000).
+
+dispuestoAGastar(tomas,Precio):-
+        precio(hamburguesa,Precio).
+
+dispuestoAGastar(soledad,Precio):-
+        dispuestoAGastar(tomas,Precio2),
+        Precio is Precio2 * 2.
+
+dispuestoAGastar(carolina,Precio):-
+        precio(papasFritas,Precio1),
+        precio(asado,Precio2),
+        Precio is Precio1 + Precio2.
+
+dispuestoAGastar(gabriel,Precio):-
+        dispuestoAGastar(carolina,Precio2),
+        Precio is Precio2 / 2.
+
+% -------------------------------------------------------------------------------------
+
+% Cambiar la implementación para el predicado leGusta/2 de modo que relacione 
+% a una persona con una comida (en ese orden) de acuerdo a lo pedido.
+
+leGusta(juan,asado).
+leGusta(juan,tostadoVeggie).
+
+leGusta(gabriel,asado).
+leGusta(gabriel,Comida):-
+        precio(Comida,Precio),
+        Precio < 3000.
+
+leGusta(soledad,Comida):-
+        leGusta(gabriel,Comida),
+        not(leGusta(juan,Comida)).
+
+leGusta(tomas,Comida):-
+        tieneCarne(Comida).
+
+leGusta(celeste, Comida) :- precio(Comida, _).
+
+% Cambiar la implementación para el predicado puedePedir/2 de modo que relacione 
+% a una persona con una comida (en ese orden) de acuerdo a lo pedido.
+
+puedePedir(Persona,Comida):-
+     leGusta(Persona,Comida),
+     dispuestoAGastar(Persona, Precio1),
+     precio(Comida,Precio2),
+     Precio2 =< Precio1.
+
+% --------------------------------
+% TESTS - NO TOCAR
+% --------------------------------
+
+:- begin_tests(tests_tp1_leGusta).
+
+test(genteALaQueLeGustaElAsado, set(Persona == [juan, gabriel, celeste, tomas])):-
+        leGusta(Persona, asado).
+
+test(gustosDeJuan, set(Comida == [asado, tostadoVeggie])):-
+        leGusta(juan, Comida).
+
+test(gustosDeGabriel, set(Comida == [asado, papasFritas, ensalada, pizzetas, tostadoVeggie, tortilla])):-
+        leGusta(gabriel, Comida).
+
+test(gustosDeSoledad, set(Comida == [papasFritas, ensalada, pizzetas, tortilla])):-
+        leGusta(soledad, Comida).
+
+test(gustosDeTomas, set(Comida == [asado, hamburguesa, lomitoDeLaCasa, polloALaPlancha])):-
+        leGusta(tomas, Comida).
+
+test(gustosDeCeleste, set(Comida == [asado, lomitoDeLaCasa, hamburguesa, papasFritas, ensalada, pizzetas, polloALaPlancha, tostadoVeggie, tortilla])):-
+        leGusta(celeste, Comida).
+
+test(aCarolinaNoLeGustaAlgoQueElBarOfrece, fail):-
+        leGusta(carolina, papasFritas).
+
+test(aCarolinaNoLeGustaAlgoQueElBarNoOfrece, fail):-
+        leGusta(carolina, tortaDeChocolate).
+
+test(aCarolinaNoLeGustaNada, fail):-
+        leGusta(carolina, _).
+
+:- end_tests(tests_tp1_leGusta).
+
+:- begin_tests(tests_tp1_puedePedir).
+
+test(genteQuePuedePedirHamburguesa, set(Persona == [celeste, tomas])):-
+        puedePedir(Persona, hamburguesa).
+
+test(nadiePuedePedirAsado, fail):-
+        puedePedir(_, asado).
+
+test(aCelesteNoLeAlcanzaParaPedirElLomito, fail):-
+        puedePedir(celeste, lomitoDeLaCasa).
+
+test(aCelesteLeAlcanzaParaPedirPollo, nondet):-
+        puedePedir(celeste, polloALaPlancha).
+
+test(comidasQuePuedePedirJuan, set(Comida == [tostadoVeggie])):-
+        puedePedir(juan, Comida).
+
+test(comidasQuePuedePedirSoledad, set(Comida == [papasFritas, ensalada, pizzetas, tortilla])):-
+        puedePedir(soledad, Comida).
+
+test(comidasQuePuedePedirTomas, set(Comida == [hamburguesa, polloALaPlancha])):-
+        puedePedir(tomas, Comida).
+
+test(comidasQuePuedePedirGabriel, set(Comida == [papasFritas, ensalada, pizzetas, tostadoVeggie, tortilla])):-
+        puedePedir(gabriel, Comida).
+
+test(carolinaNoPuedePedirNadaPorqueNoLeGustaLoQueHay, fail):-
+        puedePedir(carolina, _).
+
+:- end_tests(tests_tp1_puedePedir).
