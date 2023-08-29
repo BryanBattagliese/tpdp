@@ -1,0 +1,62 @@
+% PROPIEDADES DE LAS RELACIONES %
+----------------------------------------------------
+% SIMETRIA %
+
+limitrofes(Pais, Limitrofe):- 
+    limitaCon(Pais, Limitrofe).
+
+limitrofes(Pais, Limitrofe):- 
+    limitaCon(Limitrofe, Pais).
+
+----------------------------------------------------
+% TRANSITIVA % -> Utilizando recursividad.
+
+bloqueaAvance(Objetivo, OtroObjetivo) :-
+    prerrequisito(Objetivo, OtroObjetivo).
+
+bloqueaAvance(Objetivo, Otro) :-
+    prerrequisito(Objetivo, Otro),
+    bloqueaAvance(Otro, _).
+
+----------------------------------------------------
+% REFLEXIVA   % -> "Se relaciona con si mismo".
+% IRREFLEXIVA % -> "No se relaciona con si mismo".
+
+seVanAPelear(Jugador, Rival):-
+  ocupaPaisFuerteEn(Jugador, Continente),
+  ocupaPaisFuerteEn(Rival, Continente),
+  Jugador \= Rival,                             --> En esta linea, al aclarar que son distintos jugadores,    
+  not((ocupaPaisEn(Tercero, Continente),            lo que hacemos es aplicar la pdad IRREFLEXIVA.
+       Tercero \= Jugador, 
+       Tercero \= Rival)).
+
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
+% POLIMORFISMO (definicion en el cuaderno) %
+% Aplicacion en "Objetivos"                %
+
+gano(Jugador):-                 
+    jugador(Jugador),                                       -> Funcion para averiguar quien gano (el que
+    forall(objetivo(Jugador, Objetivo),                        cumplio todos los objetivos).
+           cumplioObjetivo(Jugador, Objetivo)).
+
+----------------------------------------------------------------------------------------------------------------
+
+objetivo(amarillo, ocuparContinente(americaDelNorte)).      -> "Hechos" : los objetivos del amarillo.
+objetivo(amarillo, destruirA(rojo)).
+
+----------------------------------------------------------------------------------------------------------------
+
+cumplioObjetivo(Jugador, ocuparContinente(Continente)):-    -> Los objetivos son distintos, por eso el concepto
+    jugador(Jugador),                                          de POLIMORFISMO.
+    ocupaPaisEn(Jugador,Continente),
+    forall(estaEn(Pais, Continente),
+           ocupa(Jugador, Pais, _)).
+
+cumplioObjetivo(Jugador, destruirA(OtroJugador)):-          -> Otro Objetivo.
+    jugador(Jugador),
+    not((ocupa(OtroJugador,_,_))).
+
+    
+----------------------------------------------------------------------------------------------------------------
