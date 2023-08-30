@@ -18,6 +18,12 @@ bloqueaAvance(Objetivo, Otro) :-
     prerrequisito(Objetivo, Otro),
     bloqueaAvance(Otro, _).
 
+personajeDeBackUp(Personaje, BackUp):-
+    esAmigo(Personaje, BackUp).
+personajeDeBackUp(Personaje, BackUp):-
+    esAmigo(Personaje, Otro),
+    esAmigo(Otro, BackUp).
+
 ----------------------------------------------------
 % REFLEXIVA   % -> "Se relaciona con si mismo".
 % IRREFLEXIVA % -> "No se relaciona con si mismo".
@@ -60,3 +66,20 @@ cumplioObjetivo(Jugador, destruirA(OtroJugador)):-          -> Otro Objetivo.
 
     
 ----------------------------------------------------------------------------------------------------------------
+
+member(banana, [pera, banana, manzana]).
+true.
+
+member(Fruta, [pera, banana, manzana]).
+Fruta = pera;
+Fruta = banana;
+Fruta = manzana.
+
+----------------------------------------------------------------------------------------------------------------
+
+nth1(X, [pera, banana, manzana, banana], banana).       -> X = posicion de "banana".
+X = 2;
+X = 4.
+
+nth1(2, [pera, banana, manzana, banana], X).            -> X = cual se encuentra en posicion "2".
+X = banana.
