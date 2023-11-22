@@ -1,0 +1,261 @@
+import modelo.*
+
+describe "Tests del punto 1" {
+	
+	const unImperioConDeuda = new Imperio(dinero=-100)
+	const unImperioSinDeuda = new Imperio(dinero=100)
+	const edificioDePrueba = new EdificioCultural(costoDeConstruccionBase=1000, culturaIrradiada=100)
+	
+	test "Un imperio esta endeudado si la cantidad de dinero es negativa" {
+		assert.that(unImperioConDeuda.estaEndeudado())
+	}
+	
+	test "Un imperio no esta endeudado si la cantidad de dinero no es negativa" {
+		assert.notThat(unImperioSinDeuda.estaEndeudado())
+	}
+
+	test "Un edificio economico suma tres puntos a la tranquilidad de los habitantes" {
+		const ciudadDePrueba = new Ciudad(imperio=unImperioSinDeuda, sistemaImpositivo=apaciguador, cantidadHabitantes=50000)
+		const edificioEconomico = new EdificioEconomico(costoDeConstruccionBase=100, incrementoDinero=100)
+		
+		ciudadDePrueba.agregarEdificio(edificioEconomico)
+		assert.equals(3, ciudadDePrueba.tranquilidad())
+	}
+	
+	test "Un edificio cultural otorga a los habitantes de la ciudad una tranquilidad igual al triple de la cultura que irradian" {
+		const ciudadDePrueba = new Ciudad(imperio=unImperioSinDeuda, sistemaImpositivo=apaciguador, cantidadHabitantes=50000)
+		const edificioCultural = new EdificioCultural(costoDeConstruccionBase=100, culturaIrradiada=100)
+		
+		ciudadDePrueba.agregarEdificio(edificioCultural)
+		assert.equals(3 * 100, ciudadDePrueba.tranquilidad())
+	}
+	
+	// la prueba del edificio militar se encuentra en los tests del punto 3
+	
+	test "Una ciudad es feliz si la tranquilidad total que generan sus edificios es mayor a la disconformidad de los habitantes y no se encuentra en un imperio endeudado" {
+		const unaCiudadFeliz = new Ciudad(edificios=[edificioDePrueba], imperio=unImperioSinDeuda, sistemaImpositivo=apaciguador, cantidadHabitantes=500000)
+		assert.that(unaCiudadFeliz.esFeliz())
+	}
+	
+	test "Una ciudad es infeliz si la tranquilidad total que generan sus edificios es menor a la disconformidad de los habitantes, sin importar que el imperio este endeudado" {
+		const unaCiudadInfeliz = new Ciudad(edificios=[edificioDePrueba], imperio=unImperioSinDeuda, sistemaImpositivo=apaciguador, cantidadHabitantes=1000000000)
+		assert.notThat(unaCiudadInfeliz.esFeliz())
+	}
+	
+	test "Una ciudad es infeliz si se encuentra en un imperio endeudado" {
+		const otraCiudadInfeliz = new Ciudad(imperio=unImperioConDeuda, sistemaImpositivo=apaciguador)
+		assert.notThat(otraCiudadInfeliz.esFeliz())
+	}
+}
+
+describe "Tests del punto 2" {
+	
+	test "En una ciudad con sistema impositivo CITADINO el costo de construccion para el edificio de prueba es ..." { 
+		const unaCiudadCitadina = new Ciudad(imperio= new Imperio(), sistemaImpositivo= new Citadino(cadaXHabitantes=100), cantidadHabitantes=100000)
+		const edificioDePrueba = new EdificioEconomico(costoDeConstruccionBase=1000, incrementoDinero=100)
+		
+		assert.equals(1000 + ((5/100) * 100000)/ 100, unaCiudadCitadina.costoConstruccionEdificio(edificioDePrueba))
+	}
+	
+	test "En una ciudad con sistema impositivo INCENTIVO CULTURAL el costo de construccion para el edificio de prueba es ..." {
+		const unaCiudadIncentivoCultural = new Ciudad(imperio= new Imperio(), sistemaImpositivo=incentivoCultural, cantidadHabitantes=100000)
+		const edificioDePrueba = new EdificioCultural(costoDeConstruccionBase=1000, culturaIrradiada=100)
+		
+		assert.equals(1000 - 100/3, unaCiudadIncentivoCultural.costoConstruccionEdificio(edificioDePrueba))
+	}
+	
+	test "En una ciudad feliz con sistema impositivo APACIGUADOR el costo de construccion para el edificio de prueba es ..." {
+		const edificioDePrueba = new EdificioMilitar(costoDeConstruccionBase=1000, incrementoTanques=10)
+		const unaCiudadApaciguadoraFeliz = new Ciudad(edificios=[edificioDePrueba], imperio= new Imperio(dinero=100), sistemaImpositivo=apaciguador, cantidadHabitantes=100000)
+		
+		assert.equals(1000, unaCiudadApaciguadoraFeliz.costoConstruccionEdificio(edificioDePrueba))
+	}
+	
+	test "En una ciudad infeliz con sistema impositivo APACIGUADOR el costo de construccion para el edificio de prueba es ..." {
+		const unaCiudadApaciguadoraInfeliz = new Ciudad(imperio= new Imperio(dinero=-100), sistemaImpositivo=apaciguador, cantidadHabitantes=100000)
+		const edificioDePrueba = new EdificioCultural(costoDeConstruccionBase=1000, culturaIrradiada=100)
+		
+		assert.equals(1000 - 3*100, unaCiudadApaciguadoraInfeliz.costoConstruccionEdificio(edificioDePrueba))
+	}
+	
+	test "Un imperio puede construir un edificio si puede pagar el costo de construccion" {
+		const imperioConDineroSuficiente = new Imperio(dinero=100000)
+		const edificioDePrueba = new EdificioMilitar(costoDeConstruccionBase=1000, incrementoTanques=10)
+		const unaCiudadFeliz = new Ciudad(edificios=[edificioDePrueba], imperio=imperioConDineroSuficiente, sistemaImpositivo=apaciguador, cantidadHabitantes=500000)
+		
+		assert.that(imperioConDineroSuficiente.puedePagarEdificio(unaCiudadFeliz, edificioDePrueba))
+	}
+	
+	test "Un imperio NO puede construir un edificio si NO puede pagar el costo de construccion" {
+		const imperioConDineroInsuficiente = new Imperio(dinero=500)
+		const edificioDePrueba = new EdificioMilitar(costoDeConstruccionBase=1000, incrementoTanques=10)
+		const unaCiudadFeliz = new Ciudad(edificios=[edificioDePrueba], imperio=imperioConDineroInsuficiente, sistemaImpositivo=apaciguador, cantidadHabitantes=500000)
+		
+		assert.notThat(imperioConDineroInsuficiente.puedePagarEdificio(unaCiudadFeliz, edificioDePrueba))
+	}
+	
+	test "Si un imperio construye un edificio debe pagar el costo de construccion" {
+		const imperioConDineroSuficiente = new Imperio(dinero=100000)
+		const edificioDePrueba = new EdificioMilitar(costoDeConstruccionBase=1000, incrementoTanques=10)
+		const unaCiudadFeliz = new Ciudad(imperio=imperioConDineroSuficiente, sistemaImpositivo=apaciguador, cantidadHabitantes=500000)	
+		imperioConDineroSuficiente.construirEdificio(unaCiudadFeliz, edificioDePrueba)
+		assert.equals(99000, imperioConDineroSuficiente.dinero())
+	}
+		
+	test "Si se construye el edificio se debe agregar el edificio en la ciudad" {
+		const imperioConDineroSuficiente = new Imperio(dinero=100000)
+		const edificioDePrueba = new EdificioMilitar(costoDeConstruccionBase=1000, incrementoTanques=10)
+		const unaCiudadFeliz = new Ciudad(imperio=imperioConDineroSuficiente, sistemaImpositivo=apaciguador, cantidadHabitantes=500000)	
+		imperioConDineroSuficiente.construirEdificio(unaCiudadFeliz, edificioDePrueba)
+		assert.that(unaCiudadFeliz.edificios().contains(edificioDePrueba))
+	}
+}
+
+describe "Tests del punto 3" {
+	
+	const unImperio = new Imperio(dinero=10000)
+	const edificioMilitar = new EdificioMilitar(costoDeConstruccionBase=1000, incrementoTanques=10)
+	const edificioCultural = new EdificioCultural(costoDeConstruccionBase=1000, culturaIrradiada=100)
+	const edificioEconomico = new EdificioEconomico(costoDeConstruccionBase=1000, incrementoDinero=10)
+	
+	
+	test "Si una Ciudad es Feliz y su imperio evoluciona, esta crece 2% en poblacion " {
+		const unaCiudadFeliz = new Ciudad(edificios=[edificioCultural], imperio = unImperio, sistemaImpositivo=apaciguador, cantidadHabitantes=1000)
+		unImperio.ciudades().add(unaCiudadFeliz)
+		unImperio.evolucionarImperio()
+		
+		assert.equals(1020, unaCiudadFeliz.cantidadHabitantes())
+	}
+	
+	test "Si una Ciudad es Infeliz y su imperio evoluciona,la poblacion sigue igual " {
+		const unaCiudadInfeliz = new Ciudad(edificios=[edificioCultural], imperio=unImperio, sistemaImpositivo=apaciguador, cantidadHabitantes=1000000000)
+		unImperio.ciudades().add(unaCiudadInfeliz)
+		unImperio.evolucionarImperio()
+		
+		assert.equals(1000000000, unaCiudadInfeliz.cantidadHabitantes())
+	}
+	
+	test "Que el imperio de la ciudad en la que se encuentra el edificio pague su costo de mantenimiento" {
+		const ciudadDePrueba = new Ciudad(edificios=[edificioCultural, edificioMilitar], imperio=unImperio, sistemaImpositivo=apaciguador, cantidadHabitantes=100)
+		unImperio.ciudades().add(ciudadDePrueba) 
+		unImperio.evolucionarImperio()
+		
+		//        dinero inicial  - costo Mantenimiento C/edificio
+		assert.equals( 10000      - (10 + 10)                     ,unImperio.dinero())
+	}
+	
+	test "Un edificio militar permite agregar 10 tanques a una ciudad durante la evolucion del imperio" {
+		const ciudadDePrueba = new Ciudad(edificios=[edificioMilitar], imperio=unImperio, sistemaImpositivo=apaciguador, cantidadHabitantes=50000)
+		unImperio.ciudades().add(ciudadDePrueba) 
+		unImperio.evolucionarImperio()
+		
+		assert.equals(10, ciudadDePrueba.tanques())
+	}
+	
+	
+	test "Un Imperio recauda el dinero generado de un edificio Economico" {
+		const ciudadDePrueba = new Ciudad(edificios=[edificioEconomico], imperio=unImperio, sistemaImpositivo=apaciguador, cantidadHabitantes=100)
+		unImperio.ciudades().add(ciudadDePrueba) 
+		unImperio.evolucionarImperio()
+		
+		//        dinero inicial + lo recaudado - costo mantenimiento
+		assert.equals(     10000 +     10       -      10             , unImperio.dinero())
+	}
+
+	
+}
+
+describe "Tests del punto 4" {
+	
+	const unImperio = new Imperio(dinero=10000)
+	const otroImperio = new Imperio(dinero=10000)
+	
+	const edificioCultural = new EdificioCultural(costoDeConstruccionBase=1000, culturaIrradiada=100)
+	const otroEdificioCultural = new EdificioCultural(costoDeConstruccionBase=1000, culturaIrradiada=10)
+	const edificioEconomico = new EdificioEconomico(costoDeConstruccionBase=1000, incrementoDinero=100)
+	
+	const unaCiudad = new Ciudad(edificios=[edificioEconomico], tanques = 10, imperio=unImperio,sistemaImpositivo=apaciguador, cantidadHabitantes=500)
+	const unaCiudadCapital = new Capital(edificios=[edificioEconomico],tanques = 10 , imperio=otroImperio, sistemaImpositivo=apaciguador, cantidadHabitantes=500)
+	
+	
+test "Una ciudad Capital tiene la mitad de Disconformidad que otra Ciudad identica que no es Capital"{
+	assert.equals(unaCiudadCapital.disconformidad(), unaCiudad.disconformidad().div(2))
+}
+
+test "El costo de construcción de los edificios es un 10% más alto que lo normal"{
+	
+	const costoEnUnaCiudadNormal= unaCiudad.costoConstruccionEdificio(edificioCultural)
+	const costoEnUnaCapital= unaCiudadCapital.costoConstruccionEdificio(edificioCultural)
+	
+	assert.equals(costoEnUnaCiudadNormal*1.1,costoEnUnaCapital)
+}
+
+test "Al recaudar pepines para el imperio se triplica el dinero generado por la Capital"{
+	
+	const edificioEconomicoSinCosto = new EdificioEconomico(costoDeConstruccionBase=0, incrementoDinero=100)
+	
+	const otraCiudadCapital = new Capital(edificios=[edificioEconomicoSinCosto , edificioEconomicoSinCosto], imperio=otroImperio, sistemaImpositivo=apaciguador, cantidadHabitantes=50)
+	
+	otroImperio.ciudades().add(otraCiudadCapital)
+	
+	otroImperio.evolucionarImperio()
+								  //dinero con pepines ya recudados - dinero inicial
+	const dineroRecaudadoEnLaCapital= otroImperio.dinero()          -     10000
+	
+	//                                       dineroQueGenera la Capital  *    3
+	assert.equals(dineroRecaudadoEnLaCapital,        200                 *    3 )
+}
+
+test "Si una Capital es infeliz al evolucionar su imperio debe configurarse en un sistema apaciguador"{
+	
+	const unaCapitalInfeliz = new Capital(edificios=[edificioEconomico], tanques = 10, imperio=unImperio, sistemaImpositivo = incentivoCultural, cantidadHabitantes = 15000000000)
+	
+	unImperio.ciudades().add(unaCapitalInfeliz)
+	
+	unImperio.evolucionarImperio()
+	
+	assert.equals(apaciguador, unaCapitalInfeliz.sistemaImpositivo())
+}
+
+
+
+test "Una Capital feliz está entre las 3 ciudades felices del imperio que menos cultura total tienen, al evolucionar su imperio debe configurarse en un sistema de incentivo Cultural."{
+	
+	const capitalFeliz= new Capital (imperio=unImperio,edificios = [otroEdificioCultural], sistemaImpositivo = apaciguador, cantidadHabitantes = 15000) //cultura = 10
+	const ciudadFeliz_A= new Ciudad(imperio=unImperio, edificios = [edificioEconomico], sistemaImpositivo = apaciguador, cantidadHabitantes = 1500) //cultura = 0
+	const ciudadFeliz_B= new Ciudad (imperio=unImperio,edificios = [edificioCultural,otroEdificioCultural],sistemaImpositivo = apaciguador, cantidadHabitantes = 1500) //cultura = 110
+	const ciudadFeliz_C= new Ciudad (imperio=unImperio,edificios = [edificioCultural,edificioCultural],sistemaImpositivo = apaciguador, cantidadHabitantes = 1500)//cultura = 200
+	
+	unImperio.ciudades().add(capitalFeliz)
+	unImperio.ciudades().add(ciudadFeliz_A)
+	unImperio.ciudades().add(ciudadFeliz_B)
+	unImperio.ciudades().add(ciudadFeliz_C)
+	
+	unImperio.evolucionarImperio()
+	
+	assert.equals(incentivoCultural, capitalFeliz.sistemaImpositivo())
+	
+	
+}
+
+test "Una Capital feliz que NO está entre las 3 ciudades felices del imperio que menos cultura total tienen, al evolucionar su imperio, su sistema impositivo se configura en Citadino que incrementa los costos cada 25000 habitantes "{
+	
+	const capitalFeliz= new Capital (imperio=unImperio,edificios = [edificioCultural,edificioCultural], sistemaImpositivo = apaciguador, cantidadHabitantes = 15000)//cultura = 200
+	const ciudadFeliz_A= new Ciudad(imperio=unImperio, edificios = [edificioEconomico], sistemaImpositivo = apaciguador, cantidadHabitantes = 1500)//cultura = 0
+	const ciudadFeliz_B= new Ciudad (imperio=unImperio,edificios = [edificioCultural,otroEdificioCultural],sistemaImpositivo = apaciguador, cantidadHabitantes = 1500)//cultura = 110
+	const ciudadFeliz_C= new Ciudad (imperio=unImperio,edificios = [otroEdificioCultural],sistemaImpositivo = apaciguador, cantidadHabitantes = 1500)//cultura = 10
+	
+	unImperio.ciudades().add(capitalFeliz)
+	unImperio.ciudades().add(ciudadFeliz_A)
+	unImperio.ciudades().add(ciudadFeliz_B)
+	unImperio.ciudades().add(ciudadFeliz_C)
+	
+	
+	unImperio.evolucionarImperio()
+	
+	
+	assert.equals(25000, (capitalFeliz.sistemaImpositivo().cadaXHabitantes())) // REVISAR 
+	// también utilice esto pero siempre queda en amarillo
+	//assert.equals(new Citadino(cadaXHabitantes=25000), capitalFeliz.sistemaImpositivo())
+}
+}
